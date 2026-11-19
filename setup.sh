@@ -143,13 +143,31 @@ fi
 if ((SKIP_PLUGINS)); then
   echo "Skipping plugin install. Run: nvim --headless -c 'Lazy! install' -c 'qa!'"
 else
-  echo "Installing pinned plugin versions from lazy-lock.json (this can take a minute) ..."
-  # "Lazy! install" honours lazy-lock.json; "Lazy! sync" would update plugins
-  # to their latest commits and change the lockfile.
+  # A first-run `Lazy! install` clones plugins at their branch HEAD and rewrites
+  # lazy-lock.json. Keep a pristine copy, then `Lazy! restore` checks out the
+  # exact commits that were locked on the source machine.
+  LOCK_BACKUP="$(mktemp)"
+  trap 'rm -f "$LOCK_BACKUP"' EXIT
+  cp "$CONFIG_DIR/lazy-lock.json" "$LOCK_BACKUP"
+
+  echo "Installing plugins from lazy-lock.json (this can take a minute) ..."
+  install_ok=1
   if ! nvim --headless -c 'Lazy! install' -c 'qa!'; then
-    echo "Warning: plugin install reported an error. Run this manually to retry:" >&2
-    echo "  nvim --headless -c 'Lazy! install' -c 'qa!'" >&2
-  elif [[ -d "$DATA_DIR/lazy/LazyVim" ]]; then
+    install_ok=0
+    echo "Warning: plugin install reported an error." >&2
+  fi
+
+  cp "$LOCK_BACKUP" "$CONFIG_DIR/lazy-lock.json"
+  if ((install_ok)); then
+    echo "Restoring the exact locked plugin versions ..."
+    if ! nvim --headless -c 'Lazy! restore' -c 'qa!'; then
+      echo "Warning: could not restore every locked version. Run this manually:" >&2
+      echo "  nvim --headless -c 'Lazy! restore' -c 'qa!'" >&2
+    fi
+    cp "$LOCK_BACKUP" "$CONFIG_DIR/lazy-lock.json"
+  fi
+
+  if [[ -d "$DATA_DIR/lazy/LazyVim" ]]; then
     echo "Plugins installed at $DATA_DIR/lazy"
   fi
 fi
@@ -157,4 +175,6 @@ fi
 echo
 echo "Done. Run 'nvim' to start with your config."
 echo "To pull later changes: cd $CONFIG_DIR && git pull"
-[[ -n "$backup" ]] && echo "Old config is still at: $backup"
+if [[ -n "$backup" ]]; then
+  echo "Old config is still at: $backup"
+fi

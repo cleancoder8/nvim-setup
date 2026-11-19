@@ -37,9 +37,10 @@ curl -fsSL https://raw.githubusercontent.com/cleancoder8/nvim-setup/main/setup.s
      working.
    - Elsewhere, the saved snapshot in `theme/neovim.lua` (tokyonight-night) is
      installed as a regular file.
-5. Runs `Lazy! install`, installing the exact plugin commits pinned in
-   `lazy-lock.json` (`Lazy! sync` would update them to the latest commits).
-   Use `--skip-plugins` to do this later manually.
+5. Runs `Lazy! install` followed by `Lazy! restore`, so plugins end up at the
+   exact commits pinned in `lazy-lock.json` (a first-run install alone checks
+   out branch HEAD instead). `Lazy! sync` would update everything to the newest
+   commits. Use `--skip-plugins` to do this later manually.
 
 Then just run `nvim`.
 
