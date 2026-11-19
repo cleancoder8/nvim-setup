@@ -1,0 +1,11 @@
+tt.*
+.tests
+doc/tags
+debug
+.repro
+foo.*
+*.log
+data
+
+# Omarchy-generated symlink to per-machine theme state
+lua/plugins/theme.lua
