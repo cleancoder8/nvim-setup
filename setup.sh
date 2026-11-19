@@ -141,12 +141,14 @@ fi
 # --- install the exact plugin versions pinned in lazy-lock.json -------------
 
 if ((SKIP_PLUGINS)); then
-  echo "Skipping plugin install. Run: nvim --headless '+Lazy! sync' +qa"
+  echo "Skipping plugin install. Run: nvim --headless -c 'Lazy! install' -c 'qa!'"
 else
-  echo "Installing plugins from lazy-lock.json (this can take a minute) ..."
-  if ! nvim --headless -c 'Lazy! sync' -c 'qa!'; then
-    echo "Warning: plugin sync reported an error. Run this manually to retry:" >&2
-    echo "  nvim --headless '+Lazy! sync' +qa" >&2
+  echo "Installing pinned plugin versions from lazy-lock.json (this can take a minute) ..."
+  # "Lazy! install" honours lazy-lock.json; "Lazy! sync" would update plugins
+  # to their latest commits and change the lockfile.
+  if ! nvim --headless -c 'Lazy! install' -c 'qa!'; then
+    echo "Warning: plugin install reported an error. Run this manually to retry:" >&2
+    echo "  nvim --headless -c 'Lazy! install' -c 'qa!'" >&2
   elif [[ -d "$DATA_DIR/lazy/LazyVim" ]]; then
     echo "Plugins installed at $DATA_DIR/lazy"
   fi
